@@ -27,14 +27,37 @@ jobs:
         if: always()
         run: mvn -B -ntp -Pcoverage verify
 
-      - name: Upload coverage build artifact
+      - name: Upload build artifacts (JAR files)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            target/*.jar
+            target/classes/
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
+
+      - name: Upload coverage report
         if: always() && hashFiles('target/site/jacoco/jacoco.xml') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-build-output
-          path: target/
+          name: coverage-report
+          path: |
+            target/site/jacoco/
+            target/site/jacoco/jacoco.xml
           if-no-files-found: ignore
           retention-days: 90
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+          retention-days: 30
 
   SonarQube:
     name: Sonarqube Cloud Analysis
