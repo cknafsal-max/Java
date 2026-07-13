@@ -64,3 +64,24 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=cknafsal-max_Java
+      - name: Download SonarQube Issues
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Fetch issues from SonarQube API
+          curl -s -u "$SONAR_TOKEN:" \
+            "https://sonarcloud.io/api/issues/search?componentKeys=cknafsal-max_Java&s=FILE_LINE&asc=false&resolved=false" \
+            > sonar-issues.json
+          
+          echo "=== SonarQube Issues Found ==="
+          cat sonar-issues.json | jq '.' || echo "No issues or API call failed"
+
+      - name: Upload SonarQube issues artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-issues
+          path: sonar-issues.json
+          if-no-files-found: warn
+          retention-days: 90
