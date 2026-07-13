@@ -200,7 +200,6 @@ jobs:
               issues_sorted = sorted(issues, key=lambda x: {'CRITICAL': 0, 'MAJOR': 1, 'MINOR': 2, 'INFO': 3}.get(x.get('severity'), 4))
               for idx, issue in enumerate(issues_sorted, 1):
                   md_content += f"""### {idx}. [{issue.get('severity')}] {issue.get('message')}
-
 - **File:** `{issue.get('component')}`
 - **Line:** {issue.get('line')}
 - **Type:** {issue.get('type')}
@@ -208,8 +207,8 @@ jobs:
 - **Effort:** {issue.get('effort')}
 
 """
-          else:
-              md_content += "✅ No issues found!\n"
+       else:
+          md_content += "✅ No issues found!\n"
           
           with open('sonar-report.md', 'w') as f:
               f.write(md_content)
