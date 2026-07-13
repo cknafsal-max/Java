@@ -165,51 +165,30 @@ jobs:
 
   # 3. TRIVY SECURITY SCAN
   # ---------------------------------------------------------------
-  trivy-scan:
-   name: Trivy Vulnerability Scan
-   needs: docker-build-and-push
-   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-   runs-on: ubuntu-latest
-   permissions:
-    contents: read
-    security-events: write
-   steps:
+  trivy-image-scan:
+    name: Trivy Docker Image Scan
+    runs-on: ubuntu-latest
+    needs: docker-build-and-push
+
+    steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_TOKEN }}
 
-    - name: Run Trivy vulnerability scanner on Docker image
-      uses: aquasecurity/trivy-action@master
+    - name: Scan Docker Hub Image
+      uses: aquasecurity/trivy-action@0.28.0
       with:
         image-ref: ${{ secrets.DOCKER_USERNAME }}/java-app:latest
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+        format: table
+        output: trivy-image-report.txt
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+        exit-code: '0'
 
-    - name: Upload Trivy results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
-    - name: Run Trivy with table format for visibility
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ secrets.DOCKER_USERNAME }}/java-app:latest
-        format: 'table'
-        output: 'trivy-report.txt'
-
-    - name: Display Trivy Report
-      if: always()
-      run: cat trivy-report.txt
-
-    - name: Upload Trivy Reports
-      if: always()
+    - name: Upload Trivy Report
       uses: actions/upload-artifact@v4
       with:
-        name: trivy-reports
-        path: |
-          trivy-results.sarif
-          trivy-report.txt
-        retention-days: 90
+        name: trivy-image-report
+        path: trivy-image-report.txt
