@@ -84,5 +84,8 @@
                 </configuration>
             </plugin>
         </plugins>
+    <properties>
+      <sonar.organization>cknafsal-max</sonar.organization>
+    </properties>
     </build>
 </project>
